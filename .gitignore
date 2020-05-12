@@ -1,4 +1,5 @@
 wordvec/**
 tmp/**
+ner-base/**
 
 .idea
