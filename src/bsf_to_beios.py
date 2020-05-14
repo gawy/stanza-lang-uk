@@ -4,6 +4,7 @@ from collections import namedtuple
 import re
 import logging
 from tqdm import tqdm
+from random import choices
 
 
 BsfInfo = namedtuple('BsfInfo', 'id, tag, start_idx, end_idx, token')
@@ -70,6 +71,9 @@ def parse_bsf(bsf_data: str) -> list:
 
 
 def convert_bsf_to_beios_in_folder(src_dir_path: str, dst_dir_path: str) -> None:
+    # following 2 constants need to comply with stanza naming for corpus and language
+    corpus_name = 'Ukrainian-languk'
+
     ann_path = os.path.join(src_dir_path, '*.tok.ann')
     ann_files = glob.glob(ann_path)
     ann_files.sort()
@@ -78,26 +82,44 @@ def convert_bsf_to_beios_in_folder(src_dir_path: str, dst_dir_path: str) -> None
     tok_files = glob.glob(tok_path)
     tok_files.sort()
 
+    corpus_folder = os.path.join(dst_dir_path, corpus_name)
+    if not os.path.exists(corpus_folder):
+        os.makedirs(corpus_folder)
+
     if len(ann_files) == 0 or len(tok_files) == 0:
         log.warning(f'Token and annotation files are not found at specified path {ann_path}')
     if len(ann_files) != len(tok_files):
         log.warning(f'Mismatch between Annotation and Token files. Ann files: {len(ann_files)}, token files: {len(tok_files)}')
+
+    train_json = []
+    dev_json = []
+    test_json = []
+
+    data_sets = [train_json, dev_json, test_json]
+    split_weights = (8, 1, 1)
 
     log.info(f'Found {len(tok_files)} files')
     for (tok_fname, ann_fname) in tqdm(zip(tok_files, ann_files), total=len(tok_files), unit='file'):
         if tok_fname[:-3] != ann_fname[:-3]:
             tqdm.write(f'Token and Annotation file names do not match ann={ann_fname}, tok={tok_fname}')
             continue
-        f_name = '-'.join(tok_fname.split('/')[-1].split('.')[:-2])
-        bio_path = os.path.join(dst_dir_path, f_name + '.bio')
-        with open(tok_fname) as tok_file, open(ann_fname) as ann_file, open(bio_path, 'w') as bio_file:
+
+        with open(tok_fname) as tok_file, open(ann_fname) as ann_file:
             token_data = tok_file.read()
             ann_data = ann_file.read()
             beios_data = convert_bsf_2_beios(token_data, ann_data)
-            # log.info(tok_fname)
-            # log.info(beios_data)
 
-            bio_file.write(beios_data)
+            target_dataset = choices(data_sets, split_weights)[0]
+            target_dataset.append(beios_data)
+    log.info(f'Data is split as following: train={len(train_json)}, dev={len(dev_json)}, test={len(test_json)}')
+
+    # writing data to {train/dev/test}.bio files
+    names = ['train', 'dev', 'test']
+    for idx, name in enumerate(names):
+        fname = os.path.join(corpus_folder, name + '.bio')
+        with open(fname, 'w') as f:
+            f.write('\n'.join(data_sets[idx]))
+        log.info('Writing to ' + fname)
 
     log.info('All done')
 
