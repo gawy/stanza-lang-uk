@@ -59,3 +59,9 @@ Prec.	Rec.	F1
 NER tagger score:
 uk_languk 86.05
 ```
+
+
+## Kudos 
+
+"Корпус NER-анотацій українських текстів" by lang-uk is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+Based on a work at https://github.com/lang-uk/ner-uk.
