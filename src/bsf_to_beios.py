@@ -1,11 +1,11 @@
+import argparse
+import logging
 import os
 import glob
 from collections import namedtuple
 import re
-import logging
 from tqdm import tqdm
 from random import choices
-
 
 BsfInfo = namedtuple('BsfInfo', 'id, tag, start_idx, end_idx, token')
 
@@ -88,8 +88,10 @@ def convert_bsf_to_beios_in_folder(src_dir_path: str, dst_dir_path: str) -> None
 
     if len(ann_files) == 0 or len(tok_files) == 0:
         log.warning(f'Token and annotation files are not found at specified path {ann_path}')
+        return
     if len(ann_files) != len(tok_files):
-        log.warning(f'Mismatch between Annotation and Token files. Ann files: {len(ann_files)}, token files: {len(tok_files)}')
+        log.warning(
+            f'Mismatch between Annotation and Token files. Ann files: {len(ann_files)}, token files: {len(tok_files)}')
 
     train_json = []
     dev_json = []
@@ -123,6 +125,15 @@ def convert_bsf_to_beios_in_folder(src_dir_path: str, dst_dir_path: str) -> None
 
     log.info('All done')
 
+
 if __name__ == '__main__':
     logging.basicConfig()
-    convert_bsf_to_beios_in_folder('/Users/andrew/Projects/law/ner-uk/data/', '/Users/andrew/Projects/law/stanza-training/ner-base/')
+
+    parser = argparse.ArgumentParser(description='Convert lang-uk NER data set from BSF format to BEIOS format compatible with Stanza NER model training requirements.\n'
+                                                 'Original data set should be downloaded from https://github.com/lang-uk/ner-uk')
+    parser.add_argument('--src_dataset', type=str, default='../ner-uk/data', help='Dir with lang-uk dataset "data" folder (https://github.com/lang-uk/ner-uk)')
+    parser.add_argument('--dst', type=str, default='../ner-base/', help='Where to store the converted dataset')
+    parser.print_help()
+    args = parser.parse_args()
+
+    convert_bsf_to_beios_in_folder(args.src_dataset, args.dst)
