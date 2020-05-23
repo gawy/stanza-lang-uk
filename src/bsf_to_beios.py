@@ -13,10 +13,36 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 
 
-def convert_bsf_2_beios(data: str, bsf_markup: str) -> str:
+def format_token_as_beios(token: str, tag: str) -> list:
+    t_words = token.split()
+    res = []
+    if len(t_words) == 1:
+        res.append(token + ' S-' + tag)
+    else:
+        res.append(t_words[0] + ' B-' + tag)
+        for t_word in t_words[1: -1]:
+            res.append(t_word + ' I-' + tag)
+        res.append(t_words[-1] + ' E-' + tag)
+    return res
+
+
+def format_token_as_iob(token: str, tag: str) -> list:
+    t_words = token.split()
+    res = []
+    if len(t_words) == 1:
+        res.append(token + ' B-' + tag)
+    else:
+        res.append(t_words[0] + ' B-' + tag)
+        for t_word in t_words[1:]:
+            res.append(t_word + ' I-' + tag)
+    return res
+
+
+def convert_bsf_2_beios(data: str, bsf_markup: str, converter: str='beios') -> str:
     """
     Convert data file with NER markup in Brat Standoff Format to BEIOS format.
 
+    :param converter: iob or beios converter to use for document
     :param data: tokenized data to be converted. Each token separated with a space
     :param bsf_markup: Brat Standoff Format markup
     :return: data in BEIOS format https://en.wikipedia.org/wiki/Inside–outside–beginning_(tagging)
@@ -28,6 +54,7 @@ def convert_bsf_2_beios(data: str, bsf_markup: str) -> str:
         tokens = re.split(r'\s', chunk.strip())
         return [token + ' O' if len(token.strip()) > 0 else token for token in tokens]
 
+    converters = {'beios': format_token_as_beios, 'iob': format_token_as_iob}
     res = []
     markup = parse_bsf(bsf_markup)
 
@@ -36,14 +63,8 @@ def convert_bsf_2_beios(data: str, bsf_markup: str) -> str:
     for m_ln in markup:
         res += join_simple_chunk(data[prev_idx:m_ln.start_idx])
 
-        t_words = m_ln.token.split(' ')
-        if len(t_words) == 1:
-            res.append(m_ln.token + ' S-' + m_ln.tag)
-        else:
-            res.append(t_words[0] + ' B-' + m_ln.tag)
-            for t_word in t_words[1: -1]:
-                res.append(t_word + ' I-' + m_ln.tag)
-            res.append(t_words[-1] + ' E-' + m_ln.tag)
+        convert_f = converters[converter]
+        res.extend(convert_f(m_ln.token, m_ln.tag))
         prev_idx = m_ln.end_idx
 
     if prev_idx < len(data) - 1:
@@ -70,7 +91,14 @@ def parse_bsf(bsf_data: str) -> list:
     return result
 
 
-def convert_bsf_to_beios_in_folder(src_dir_path: str, dst_dir_path: str) -> None:
+def convert_bsf_in_folder(src_dir_path: str, dst_dir_path: str, converter: str = 'beios') -> None:
+    """
+
+    :param src_dir_path:
+    :param dst_dir_path:
+    :param converter: `beios` or `iob` output formats
+    :return:
+    """
     # following 2 constants need to comply with stanza naming for corpus and language
     corpus_name = 'Ukrainian-languk'
 
@@ -93,11 +121,11 @@ def convert_bsf_to_beios_in_folder(src_dir_path: str, dst_dir_path: str) -> None
         log.warning(
             f'Mismatch between Annotation and Token files. Ann files: {len(ann_files)}, token files: {len(tok_files)}')
 
-    train_json = []
-    dev_json = []
-    test_json = []
+    train_set = []
+    dev_set = []
+    test_set = []
 
-    data_sets = [train_json, dev_json, test_json]
+    data_sets = [train_set, dev_set, test_set]
     split_weights = (8, 1, 1)
 
     log.info(f'Found {len(tok_files)} files')
@@ -109,18 +137,18 @@ def convert_bsf_to_beios_in_folder(src_dir_path: str, dst_dir_path: str) -> None
         with open(tok_fname) as tok_file, open(ann_fname) as ann_file:
             token_data = tok_file.read()
             ann_data = ann_file.read()
-            beios_data = convert_bsf_2_beios(token_data, ann_data)
+            out_data = convert_bsf_2_beios(token_data, ann_data, converter)
 
             target_dataset = choices(data_sets, split_weights)[0]
-            target_dataset.append(beios_data)
-    log.info(f'Data is split as following: train={len(train_json)}, dev={len(dev_json)}, test={len(test_json)}')
+            target_dataset.append(out_data)
+    log.info(f'Data is split as following: train={len(train_set)}, dev={len(dev_set)}, test={len(test_set)}')
 
     # writing data to {train/dev/test}.bio files
     names = ['train', 'dev', 'test']
     for idx, name in enumerate(names):
         fname = os.path.join(corpus_folder, name + '.bio')
         with open(fname, 'w') as f:
-            f.write('\n'.join(data_sets[idx]))
+            f.write('\n'.join(data_sets[idx])) #[s for s in data_sets[idx] if len(s.strip()) > 0]
         log.info('Writing to ' + fname)
 
     log.info('All done')
@@ -133,7 +161,8 @@ if __name__ == '__main__':
                                                  'Original data set should be downloaded from https://github.com/lang-uk/ner-uk')
     parser.add_argument('--src_dataset', type=str, default='../ner-uk/data', help='Dir with lang-uk dataset "data" folder (https://github.com/lang-uk/ner-uk)')
     parser.add_argument('--dst', type=str, default='../ner-base/', help='Where to store the converted dataset')
+    parser.add_argument('-c', type=str, default='beios', help='`beios` or `iob` formats to be used for output')
     parser.print_help()
     args = parser.parse_args()
 
-    convert_bsf_to_beios_in_folder(args.src_dataset, args.dst)
+    convert_bsf_in_folder(args.src_dataset, args.dst, args.c)

@@ -3,9 +3,7 @@ from src.bsf_to_beios import convert_bsf_2_beios, parse_bsf, BsfInfo
 
 
 class TestBsf2Beios(unittest.TestCase):
-    def setUp(self) -> None:
-        pass
-
+    
     def test_empty_markup(self):
         res = convert_bsf_2_beios('', '')
         self.assertEqual('', res)
@@ -30,10 +28,11 @@ class TestBsf2Beios(unittest.TestCase):
         bsf_markup = 'T1	PERS 14 29	Василь Нагірний'
         expected = '''тележурналіст O
 Василь B-PERS
-Нагірний E-PERS'''
+Нагірний E-PERS
+. O'''
         self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
 
-    def test_1line_2tok_markup(self):
+    def test_1line_Long_tok_markup(self):
         data = 'А в музеї Гуцульщини і Покуття можна '
         bsf_markup = 'T12	ORG 4 30	музеї Гуцульщини і Покуття'
         expected = '''А O
@@ -42,11 +41,10 @@ class TestBsf2Beios(unittest.TestCase):
 Гуцульщини I-ORG
 і I-ORG
 Покуття E-ORG
-можна O
-'''
+можна O'''
         self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
 
-    def test_1line_2tok_markup(self):
+    def test_2line_2tok_markup(self):
         data = '''тележурналіст Василь Нагірний .
 В івано-франківському видавництві «Лілея НВ» вийшла друком'''
         bsf_markup = '''T1	PERS 14 29	Василь Нагірний

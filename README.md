@@ -36,8 +36,8 @@ nlp = stanza.Pipeline('uk', processors='tokenize,pos,lemma',
                       ner_forward_charlm_path="", ner_backward_charlm_path="")
 ```
 
-## Recent training results
 ```
+## Recent training results
 Training ended with 34000 steps.
 Best dev F1 = 84.24, at iteration = 22000
 
