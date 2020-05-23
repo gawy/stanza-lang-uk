@@ -38,14 +38,14 @@ def format_token_as_iob(token: str, tag: str) -> list:
     return res
 
 
-def convert_bsf_2_beios(data: str, bsf_markup: str, converter: str='beios') -> str:
+def convert_bsf(data: str, bsf_markup: str, converter: str = 'beios') -> str:
     """
-    Convert data file with NER markup in Brat Standoff Format to BEIOS format.
+    Convert data file with NER markup in Brat Standoff Format to BEIOS or IOB format.
 
     :param converter: iob or beios converter to use for document
     :param data: tokenized data to be converted. Each token separated with a space
     :param bsf_markup: Brat Standoff Format markup
-    :return: data in BEIOS format https://en.wikipedia.org/wiki/Inside–outside–beginning_(tagging)
+    :return: data in BEIOS or IOB format https://en.wikipedia.org/wiki/Inside–outside–beginning_(tagging)
     """
 
     def join_simple_chunk(chunk: str) -> list:
@@ -91,11 +91,13 @@ def parse_bsf(bsf_data: str) -> list:
     return result
 
 
-def convert_bsf_in_folder(src_dir_path: str, dst_dir_path: str, converter: str = 'beios') -> None:
+def convert_bsf_in_folder(src_dir_path: str, dst_dir_path: str, converter: str = 'beios',
+                          doc_delim: str = '\n') -> None:
     """
 
-    :param src_dir_path:
-    :param dst_dir_path:
+    :param doc_delim: delimiter to be used between documents
+    :param src_dir_path: path to directory with BSF marked files
+    :param dst_dir_path: where to save output data
     :param converter: `beios` or `iob` output formats
     :return:
     """
@@ -137,7 +139,7 @@ def convert_bsf_in_folder(src_dir_path: str, dst_dir_path: str, converter: str =
         with open(tok_fname) as tok_file, open(ann_fname) as ann_file:
             token_data = tok_file.read()
             ann_data = ann_file.read()
-            out_data = convert_bsf_2_beios(token_data, ann_data, converter)
+            out_data = convert_bsf(token_data, ann_data, converter)
 
             target_dataset = choices(data_sets, split_weights)[0]
             target_dataset.append(out_data)
@@ -145,10 +147,12 @@ def convert_bsf_in_folder(src_dir_path: str, dst_dir_path: str, converter: str =
 
     # writing data to {train/dev/test}.bio files
     names = ['train', 'dev', 'test']
+    if doc_delim != '\n':
+        doc_delim = '\n' + doc_delim + '\n'
     for idx, name in enumerate(names):
         fname = os.path.join(corpus_folder, name + '.bio')
         with open(fname, 'w') as f:
-            f.write('\n'.join(data_sets[idx])) #[s for s in data_sets[idx] if len(s.strip()) > 0]
+            f.write(doc_delim.join(data_sets[idx]))
         log.info('Writing to ' + fname)
 
     log.info('All done')
@@ -162,7 +166,8 @@ if __name__ == '__main__':
     parser.add_argument('--src_dataset', type=str, default='../ner-uk/data', help='Dir with lang-uk dataset "data" folder (https://github.com/lang-uk/ner-uk)')
     parser.add_argument('--dst', type=str, default='../ner-base/', help='Where to store the converted dataset')
     parser.add_argument('-c', type=str, default='beios', help='`beios` or `iob` formats to be used for output')
+    parser.add_argument('--doc_delim', type=str, default='\n', help='Delimiter to be used to separate documents in the output data')
     parser.print_help()
     args = parser.parse_args()
 
-    convert_bsf_in_folder(args.src_dataset, args.dst, args.c)
+    convert_bsf_in_folder(args.src_dataset, args.dst, args.c, args.doc_delim)

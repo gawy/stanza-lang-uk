@@ -1,5 +1,5 @@
 import unittest
-from src.bsf_to_beios import convert_bsf_2_beios, parse_bsf, BsfInfo
+from src.bsf_to_beios import convert_bsf, parse_bsf, BsfInfo
 
 
 class TestBsf2Iob(unittest.TestCase):
@@ -10,7 +10,7 @@ class TestBsf2Iob(unittest.TestCase):
         expected = '''тележурналіст O
 Василь B-PERS
 . O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup, converter='iob'))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup, converter='iob'))
 
     def test_1line_2tok_markup_iob(self):
         data = 'тележурналіст Василь Нагірний .'
@@ -19,7 +19,7 @@ class TestBsf2Iob(unittest.TestCase):
 Василь B-PERS
 Нагірний I-PERS
 . O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup, converter='iob'))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup, converter='iob'))
 
     def test_1line_Long_tok_markup_iob(self):
         data = 'А в музеї Гуцульщини і Покуття можна '
@@ -31,7 +31,7 @@ class TestBsf2Iob(unittest.TestCase):
 і I-ORG
 Покуття I-ORG
 можна O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup, converter='iob'))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup, converter='iob'))
 
     def test_2line_2tok_markup_iob(self):
         data = '''тележурналіст Василь Нагірний .
@@ -51,7 +51,7 @@ T2	ORG 67 75	Лілея НВ'''
 » O
 вийшла O
 друком O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup, converter='iob'))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup, converter='iob'))
 
     def test_all_multiline_iob(self):
         data = '''його книжечка «А .
@@ -76,7 +76,7 @@ Kubler I-MISC
 » O
 . O
 Причому O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup, converter='iob'))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup, converter='iob'))
 
 
 if __name__ == '__main__':

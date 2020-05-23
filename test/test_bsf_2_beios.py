@@ -1,11 +1,11 @@
 import unittest
-from src.bsf_to_beios import convert_bsf_2_beios, parse_bsf, BsfInfo
+from src.bsf_to_beios import convert_bsf, parse_bsf, BsfInfo
 
 
 class TestBsf2Beios(unittest.TestCase):
     
     def test_empty_markup(self):
-        res = convert_bsf_2_beios('', '')
+        res = convert_bsf('', '')
         self.assertEqual('', res)
 
     def test_1line_markup(self):
@@ -13,7 +13,7 @@ class TestBsf2Beios(unittest.TestCase):
         bsf_markup = 'T1	PERS 14 20	Василь'
         expected = '''тележурналіст O
 Василь S-PERS'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup))
 
     def test_1line_follow_markup(self):
         data = 'тележурналіст Василь .'
@@ -21,7 +21,7 @@ class TestBsf2Beios(unittest.TestCase):
         expected = '''тележурналіст O
 Василь S-PERS
 . O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup))
 
     def test_1line_2tok_markup(self):
         data = 'тележурналіст Василь Нагірний .'
@@ -30,7 +30,7 @@ class TestBsf2Beios(unittest.TestCase):
 Василь B-PERS
 Нагірний E-PERS
 . O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup))
 
     def test_1line_Long_tok_markup(self):
         data = 'А в музеї Гуцульщини і Покуття можна '
@@ -42,7 +42,7 @@ class TestBsf2Beios(unittest.TestCase):
 і I-ORG
 Покуття E-ORG
 можна O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup))
 
     def test_2line_2tok_markup(self):
         data = '''тележурналіст Василь Нагірний .
@@ -62,7 +62,7 @@ T2	ORG 67 75	Лілея НВ'''
 » O
 вийшла O
 друком O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup))
 
     def test_real_markup(self):
         data = '''Через напіввоєнний стан в Україні та збільшення телефонних терористичних погроз українці купуватимуть sim-карти тільки за паспортами .
@@ -276,7 +276,7 @@ sim-карту O
 Вікторія B-PERS
 Рубан E-PERS
 . O'''
-        self.assertEqual(expected, convert_bsf_2_beios(data, bsf_markup))
+        self.assertEqual(expected, convert_bsf(data, bsf_markup))
 
 
 class TestBsf(unittest.TestCase):
