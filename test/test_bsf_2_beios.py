@@ -1,5 +1,5 @@
 import unittest
-from src.bsf_to_beios import convert_bsf, parse_bsf, BsfInfo
+from src.bsf_beios.bsf_to_beios import convert_bsf, parse_bsf, BsfInfo
 
 
 class TestBsf2Beios(unittest.TestCase):
