@@ -21,7 +21,7 @@ Data will be saved to `../ner-base/` dir. Or you can change this path with `--ds
 ## Stanza training
 After obtaining `*.bio` files you can run Stanza NER training.
 
-Make sure follow instructions at [https://stanfordnlp.github.io/stanza/training.html]().
+Make sure to follow instructions at [https://stanfordnlp.github.io/stanza/training.html](https://stanfordnlp.github.io/stanza/training.html). There are all sorts of naming gotchas that you want to avoid.
 
 After necessary configuration you will be able to run NER model training
 ```shell script
