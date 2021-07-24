@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import logging
 import os
@@ -75,9 +77,9 @@ def convert_bsf(data: str, bsf_markup: str, converter: str = 'beios') -> str:
 
 def parse_bsf(bsf_data: str) -> list:
     """
-    Convert textual bsf representation to a list of named entities.
+    Convert multiline textual bsf representation to a list of named entities.
 
-    :param bsf_data: data in the format 'T9	PERS 778 783    токен'
+    :param bsf_data: data in the format 'T9	PERS 778 783    токен'. Can be multiple lines.
     :return: list of named tuples for each line of the data representing a single named entity token
     """
     if len(bsf_data.strip()) == 0:
