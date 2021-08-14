@@ -16,7 +16,15 @@ git clone https://github.com/lang-uk/ner-uk
 ```shell script
 python bsf_to_beios.py --src_dataset $SRC_DATASET/data
 ```
-Data will be saved to `../ner-base/` dir. Or you can change this path with `--dst` argument
+Data will be saved to `../ner-base/` dir. Or you can change this path with `--dst` argument.
+
+If `--split_file` is not specified, the script will randomly split the data into train, dev, test sets. 
+Otherwise, data will be processed according to provided file. 
+
+Example to convert to iob
+```shell
+python src/bsf_beios/bsf_to_beios.py --split_file "../ner-uk/doc/dev-test-split.txt" -c 'iob' --dst "../"
+```
 
 ## Stanza training
 After obtaining `*.bio` files you can run Stanza NER training.
