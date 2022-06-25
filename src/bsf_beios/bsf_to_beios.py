@@ -147,7 +147,7 @@ def convert_bsf_in_folder(src_dir_path: str, dst_dir_path: str, converter: str =
             tqdm.write(f'Token and Annotation file names do not match ann={ann_fname}, tok={tok_fname}')
             continue
 
-        with open(tok_fname) as tok_file, open(ann_fname) as ann_file:
+        with open(tok_fname, encoding='utf8') as tok_file, open(ann_fname, encoding='utf8') as ann_file:
             token_data = tok_file.read()
             ann_data = ann_file.read()
             out_data = convert_bsf(token_data, ann_data, converter)
@@ -171,7 +171,7 @@ def convert_bsf_in_folder(src_dir_path: str, dst_dir_path: str, converter: str =
         doc_delim = '\n' + doc_delim + '\n'
     for idx, name in enumerate(names):
         fname = os.path.join(corpus_folder, name + '.bio')
-        with open(fname, 'w') as f:
+        with open(fname, 'w', encoding='utf8') as f:
             f.write(doc_delim.join(data_sets[idx]))
         log.info('Writing to ' + fname)
 
@@ -189,7 +189,7 @@ def read_languk_train_test_split(file_path: str, dev_split: float = 0.1) -> Tupl
     log.info(f'Trying to read train/dev/test split from file "{file_path}". Dev allocation = {dev_split}')
     train_files, test_files, dev_files = [], [], []
     container = test_files
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='utf8') as f:
         for ln in f:
             ln = ln.strip()
             if ln == 'DEV':
